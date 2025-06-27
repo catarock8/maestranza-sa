@@ -1,15 +1,10 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordRequestForm
 from peewee import DoesNotExist, OperationalError
-from datetime import timedelta, datetime
+from datetime import datetime
 import os
 
-from database import init_db, Product, Batch, Movement, User
-from auth import (
-    authenticate_user, create_access_token,
-    get_current_active_user, get_current_active_admin, get_password_hash
-)
+from database import init_db, Product, Batch, Movement
 
 # App setup
 app = FastAPI(title="Inventarios Maestranzas S.A.")
@@ -32,48 +27,6 @@ def on_startup():
 @app.get('/')
 def root():
     return {'message': 'API Maestranza S.A. funcionando correctamente', 'status': 'OK'}
-
-# Auth
-@app.post('/token')
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(status_code=401, detail='Invalid credentials')
-    access_token = create_access_token(
-        data={'sub': user.username, 'role': user.role},
-        expires_delta=timedelta(minutes=int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', 30)))
-    )
-    return {'access_token': access_token, 'token_type': 'bearer'}
-
-# Endpoint temporal para crear usuario inicial (QUITAR EN PRODUCCIÓN)
-@app.post('/create-initial-user')
-def create_initial_user():
-    try:
-        # Verificar si ya existe un usuario admin
-        existing = User.select().where(User.username == 'admin').first()
-        if existing:
-            return {'msg': 'Usuario admin ya existe'}
-        
-        # Crear usuario admin
-        hashed = get_password_hash('admin123')
-        User.create(
-            username='admin', 
-            password_hash=hashed, 
-            role='admin',
-            email='admin@maestranza.com',
-            full_name='Administrador Sistema',
-            is_active=True
-        )
-        return {'msg': 'Usuario admin creado exitosamente', 'username': 'admin', 'password': 'admin123'}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error creando usuario: {str(e)}')
-
-# Users
-@app.post('/users', dependencies=[Depends(get_current_active_admin)])
-def create_user(username: str, password: str, role: str):
-    hashed = get_password_hash(password)
-    User.create(username=username, password_hash=hashed, role=role)
-    return {'msg': 'User created'}
 
 # Products CRUD (sin autenticación por ahora)
 @app.get('/products')
@@ -105,8 +58,8 @@ def delete_product(product_id: int):
     prod.delete_instance()
     return {'msg': 'Deleted'}
 
-# Movements
-@app.post('/movements', dependencies=[Depends(get_current_active_user)])
+# Movements (sin autenticación)
+@app.post('/movements')
 def add_movement(product_id: int, quantity: int, type: str):
     try:
         prod = Product.get_by_id(product_id)
@@ -120,12 +73,12 @@ def add_movement(product_id: int, quantity: int, type: str):
     move = Movement.create(product=prod, quantity=quantity, type=type, timestamp=datetime.utcnow())
     return move.__data__
 
-@app.get('/movements', dependencies=[Depends(get_current_active_user)])
+@app.get('/movements')
 def list_movements():
     return list(Movement.select().dicts())
 
-# Batches
-@app.post('/batches', dependencies=[Depends(get_current_active_user)])
+# Batches (sin autenticación)
+@app.post('/batches')
 def add_batch(product_id: int, lot_number: str, expiry_date: datetime, quantity: int):
     try:
         prod = Product.get_by_id(product_id)
@@ -134,25 +87,26 @@ def add_batch(product_id: int, lot_number: str, expiry_date: datetime, quantity:
     batch = Batch.create(product=prod, lot_number=lot_number, expiry_date=expiry_date, quantity=quantity)
     return batch.__data__
 
-@app.get('/batches', dependencies=[Depends(get_current_active_user)])
+@app.get('/batches')
 def list_batches():
     return list(Batch.select().dicts())
 
-# Alerts - productos con stock bajo
-@app.get('/alerts', dependencies=[Depends(get_current_active_user)])
+# Alerts - productos con stock bajo (sin autenticación)
+@app.get('/alerts')
 def list_alerts(threshold: int = 10):
     low_stock = Product.select().where(Product.quantity <= threshold)
     return {'threshold': threshold, 'products': list(low_stock.dicts())}
 
-# Reports - inventario general
+# Reports - inventario general (sin autenticación)
+@app.get('/reports/inventory')
 def report_inventory():
     products = list(Product.select())
     return {'total_products': len(products), 'total_quantity': sum(p.quantity for p in products)}
-app.get('/reports/inventory', dependencies=[Depends(get_current_active_user)])(report_inventory)
 
-# Reports - lotes próximos a vencerse
-@app.get('/reports/expiry', dependencies=[Depends(get_current_active_user)])
+# Reports - lotes próximos a vencerse (sin autenticación)
+@app.get('/reports/expiry')
 def report_expiry(days: int = 30):
+    from datetime import timedelta
     cutoff = datetime.utcnow() + timedelta(days=days)
     batches = Batch.select().where(Batch.expiry_date <= cutoff)
     return {'expires_within_days': days, 'batches': list(batches.dicts())}
