@@ -40,6 +40,29 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
+# Endpoint temporal para crear usuario inicial (QUITAR EN PRODUCCIÓN)
+@app.post('/create-initial-user')
+def create_initial_user():
+    try:
+        # Verificar si ya existe un usuario admin
+        existing = User.select().where(User.username == 'admin').first()
+        if existing:
+            return {'msg': 'Usuario admin ya existe'}
+        
+        # Crear usuario admin
+        hashed = get_password_hash('admin123')
+        User.create(
+            username='admin', 
+            password_hash=hashed, 
+            role='admin',
+            email='admin@maestranza.com',
+            full_name='Administrador Sistema',
+            is_active=True
+        )
+        return {'msg': 'Usuario admin creado exitosamente', 'username': 'admin', 'password': 'admin123'}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f'Error creando usuario: {str(e)}')
+
 # Users
 @app.post('/users', dependencies=[Depends(get_current_active_admin)])
 def create_user(username: str, password: str, role: str):
