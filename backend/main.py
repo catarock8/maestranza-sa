@@ -165,3 +165,8 @@ def create_sample_products():
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f'Error creando productos: {str(e)}')
+
+# GET version para probar desde navegador
+@app.get('/create-sample-products')
+def create_sample_products_get():
+    return create_sample_products()
