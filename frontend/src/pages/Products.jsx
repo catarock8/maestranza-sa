@@ -24,10 +24,10 @@ export default function Products() {
       
       // Datos de ejemplo como fallback
       const mockProducts = [
-        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', quantity: 150 },
-        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', quantity: 200 },
-        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', quantity: 75 },
-        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', quantity: 90 },
+        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', brand: 'ACME', quantity: 150 },
+        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', brand: 'Stanley', quantity: 200 },
+        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', brand: 'Bosch', quantity: 75 },
+        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', brand: 'Makita', quantity: 90 },
       ];
       setProducts(mockProducts);
     } finally {
@@ -62,7 +62,7 @@ export default function Products() {
               <div className="product-info">
                 <div className="product-name">{p.name}</div>
                 <div className="product-details">
-                  Serie: {p.serial_number || 'N/A'} | Ubicación: {p.location || 'N/A'}
+                  Serie: {p.serial_number || 'N/A'} | Marca: {p.brand || 'N/A'} | Ubicación: {p.location || 'N/A'}
                 </div>
               </div>
               <div className="product-quantity">{p.quantity} unidades</div>

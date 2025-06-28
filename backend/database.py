@@ -54,6 +54,7 @@ class Product(BaseModel):
     description = TextField(null=True)
     serial_number = CharField(unique=True, max_length=100, null=True)
     sku = CharField(unique=True, max_length=50, null=True)
+    brand = CharField(max_length=100, null=True)  # Nueva columna para marca
     category = ForeignKeyField(Category, null=True, backref='products')
     location = CharField(max_length=100, null=True)
     quantity = IntegerField(default=0)

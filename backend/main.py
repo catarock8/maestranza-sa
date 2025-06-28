@@ -34,8 +34,14 @@ def list_products():
     return list(Product.select().dicts())
 
 @app.post('/products')
-def add_product(name: str, serial_number: str, location: str, quantity: int = 0):
-    prod = Product.create(name=name, serial_number=serial_number, location=location, quantity=quantity)
+def add_product(name: str, serial_number: str, location: str, brand: str = None, quantity: int = 0):
+    prod = Product.create(
+        name=name, 
+        serial_number=serial_number, 
+        location=location, 
+        brand=brand,
+        quantity=quantity
+    )
     return prod.__data__
 
 @app.put('/products/{product_id}')
@@ -116,11 +122,11 @@ def report_expiry(days: int = 30):
 def create_sample_products():
     try:
         sample_products = [
-            {'name': 'Tuerca M8', 'serial_number': 'TM8-001', 'location': 'Estante A1', 'quantity': 150},
-            {'name': 'Tornillo M6x20', 'serial_number': 'TM6-020', 'location': 'Estante A2', 'quantity': 200},
-            {'name': 'Arandela 8mm', 'serial_number': 'AR8-001', 'location': 'Estante B1', 'quantity': 75},
-            {'name': 'Perno M10x30', 'serial_number': 'PM10-030', 'location': 'Estante B2', 'quantity': 90},
-            {'name': 'Remache 4mm', 'serial_number': 'RM4-001', 'location': 'Estante C1', 'quantity': 300},
+            {'name': 'Tuerca M8', 'serial_number': 'TM8-001', 'location': 'Estante A1', 'brand': 'ACME', 'quantity': 150},
+            {'name': 'Tornillo M6x20', 'serial_number': 'TM6-020', 'location': 'Estante A2', 'brand': 'Stanley', 'quantity': 200},
+            {'name': 'Arandela 8mm', 'serial_number': 'AR8-001', 'location': 'Estante B1', 'brand': 'Bosch', 'quantity': 75},
+            {'name': 'Perno M10x30', 'serial_number': 'PM10-030', 'location': 'Estante B2', 'brand': 'Makita', 'quantity': 90},
+            {'name': 'Remache 4mm', 'serial_number': 'RM4-001', 'location': 'Estante C1', 'brand': 'DeWalt', 'quantity': 300},
         ]
         
         created_count = 0
