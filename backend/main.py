@@ -18,15 +18,35 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup():
+    print("🚀 Starting Maestranza SA Backend...")
     try:
-        init_db()
-    except OperationalError as e:
-        print(f"Warning: could not initialize database at startup: {e}")
+        print("📊 Initializing database...")
+        success = init_db()
+        if success:
+            print("✅ Database connected successfully")
+        else:
+            print("❌ Database initialization failed")
+    except Exception as e:
+        print(f"❌ Startup error: {e}")
 
-# Endpoint de prueba
+# Endpoint de prueba mejorado
 @app.get('/')
 def root():
-    return {'message': 'API Maestranza S.A. funcionando correctamente', 'status': 'OK'}
+    try:
+        # Probar conexión a la base de datos
+        from database import DB
+        DB.connect(reuse_if_open=True)
+        db_status = "✅ Connected"
+        DB.close()
+    except Exception as e:
+        db_status = f"❌ Error: {str(e)}"
+    
+    return {
+        'message': 'API Maestranza S.A. funcionando correctamente', 
+        'status': 'OK',
+        'database': db_status,
+        'endpoints': ['/products', '/movements', '/batches', '/create-sample-products']
+    }
 
 # Products CRUD (sin autenticación por ahora)
 @app.get('/products')
