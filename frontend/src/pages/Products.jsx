@@ -5,18 +5,26 @@ import api from '../api';
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [minStock, setMinStock] = useState('');
+  const [maxStock, setMaxStock] = useState('');
+  const [orderBy, setOrderBy] = useState('name');
+  const [orderDir, setOrderDir] = useState('asc');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchCategories();
+    fetchBrands();
     fetchProducts();
   }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedBrand, searchTerm, minStock, maxStock, orderBy, orderDir]);
 
   const fetchCategories = async () => {
     try {
@@ -27,13 +35,32 @@ export default function Products() {
     }
   };
 
+  const fetchBrands = async () => {
+    try {
+      const response = await api.get('/brands');
+      setBrands(response.data);
+    } catch (err) {
+      console.error('Error fetching brands:', err);
+    }
+  };
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
       console.log('Fetching products from:', import.meta.env.VITE_API_URL);
       
-      // Construir URL con filtro de categoría si está seleccionada
-      const url = selectedCategory ? `/products?category_id=${selectedCategory}` : '/products';
+      // Construir parámetros de query
+      const params = new URLSearchParams();
+      if (selectedCategory) params.append('category_id', selectedCategory);
+      if (selectedBrand) params.append('brand', selectedBrand);
+      if (searchTerm) params.append('search', searchTerm);
+      if (minStock) params.append('min_stock', minStock);
+      if (maxStock) params.append('max_stock', maxStock);
+      if (orderBy) params.append('order_by', orderBy);
+      if (orderDir) params.append('order_dir', orderDir);
+      
+      const queryString = params.toString();
+      const url = queryString ? `/products?${queryString}` : '/products';
       const response = await api.get(url);
       
       setProducts(response.data);
@@ -55,6 +82,23 @@ export default function Products() {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory('');
+    setSelectedBrand('');
+    setMinStock('');
+    setMaxStock('');
+    setOrderBy('name');
+    setOrderDir('asc');
+  };
+  
+  const setLowStockFilter = () => {
+    setMinStock('');
+    setMaxStock('10');
+    setOrderBy('quantity');
+    setOrderDir('asc');
+  };
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -63,28 +107,215 @@ export default function Products() {
       </div>
       
       <div className="content-card">
-        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-          <h2>Productos en Inventario</h2>
-          <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
-            <select 
-              value={selectedCategory} 
-              onChange={(e) => setSelectedCategory(e.target.value)}
+        {/* Panel de filtros mejorado */}
+        <div style={{
+          background: '#f8f9fa',
+          padding: '20px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          border: '1px solid #e9ecef'
+        }}>
+          <h3 style={{margin: '0 0 15px 0', color: '#495057'}}>🔍 Filtros de Búsqueda</h3>
+          
+          {/* Primera fila de filtros */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '15px',
+            marginBottom: '15px'
+          }}>
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Buscar:</label>
+              <input
+                type="text"
+                placeholder="Nombre o número de serie..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Categoría:</label>
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="">Todas las categorías</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Marca:</label>
+              <select 
+                value={selectedBrand} 
+                onChange={(e) => setSelectedBrand(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="">Todas las marcas</option>
+                {brands.map(brand => (
+                  <option key={brand.name} value={brand.name}>{brand.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          {/* Segunda fila de filtros */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+            gap: '15px',
+            marginBottom: '15px'
+          }}>
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Stock mínimo:</label>
+              <input
+                type="number"
+                placeholder="0"
+                value={minStock}
+                onChange={(e) => setMinStock(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Stock máximo:</label>
+              <input
+                type="number"
+                placeholder="1000"
+                value={maxStock}
+                onChange={(e) => setMaxStock(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Ordenar por:</label>
+              <select 
+                value={orderBy} 
+                onChange={(e) => setOrderBy(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="name">Nombre</option>
+                <option value="quantity">Cantidad</option>
+                <option value="brand">Marca</option>
+                <option value="serial_number">Serie</option>
+              </select>
+            </div>
+            
+            <div>
+              <label style={{display: 'block', marginBottom: '5px', fontWeight: '500'}}>Dirección:</label>
+              <select 
+                value={orderDir} 
+                onChange={(e) => setOrderDir(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px 12px',
+                  borderRadius: '4px',
+                  border: '1px solid #ddd',
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="asc">Ascendente</option>
+                <option value="desc">Descendente</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* Botones de acción */}
+          <div style={{display: 'flex', gap: '10px', justifyContent: 'flex-end'}}>
+            <button 
+              onClick={setLowStockFilter}
               style={{
-                padding: '8px 12px',
+                padding: '8px 16px',
                 borderRadius: '4px',
-                border: '1px solid #ddd',
-                backgroundColor: 'white'
+                border: '1px solid #dc3545',
+                backgroundColor: 'white',
+                color: '#dc3545',
+                cursor: 'pointer',
+                fontSize: '14px'
               }}
             >
-              <option value="">Todas las categorías</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-            <button onClick={fetchProducts} disabled={loading}>
-              {loading ? 'Cargando...' : 'Actualizar'}
+              ⚠️ Stock bajo
+            </button>
+            <button 
+              onClick={clearFilters}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '4px',
+                border: '1px solid #6c757d',
+                backgroundColor: 'white',
+                color: '#6c757d',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              🗑️ Limpiar filtros
+            </button>
+            <button 
+              onClick={fetchProducts} 
+              disabled={loading}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '4px',
+                border: 'none',
+                backgroundColor: '#007bff',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px'
+              }}
+            >
+              {loading ? '⏳ Cargando...' : '🔄 Actualizar'}
             </button>
           </div>
+        </div>
+
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
+          <h2>Productos en Inventario ({products.length})</h2>
         </div>
         
         {error && (
@@ -94,18 +325,60 @@ export default function Products() {
         )}
         
         <ul className="products-list">
-          {products.map(p => (
-            <li key={p.id}>
-              <div className="product-info">
-                <div className="product-name">{p.name}</div>
-                <div className="product-details">
-                  Serie: {p.serial_number || 'N/A'} | Marca: {p.brand || 'N/A'} | 
-                  Categoría: {p.category_name || 'Sin categoría'} | Ubicación: {p.location || 'N/A'}
+          {products.map(p => {
+            const stockStatus = p.quantity <= 10 ? 'low' : p.quantity <= 50 ? 'medium' : 'high';
+            const stockColor = stockStatus === 'low' ? '#dc3545' : stockStatus === 'medium' ? '#ffc107' : '#28a745';
+            
+            return (
+              <li key={p.id} style={{
+                border: `1px solid ${stockStatus === 'low' ? '#dc3545' : '#e9ecef'}`,
+                borderRadius: '8px',
+                padding: '15px',
+                marginBottom: '10px',
+                backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white'
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <div className="product-info" style={{flex: 1}}>
+                    <div className="product-name" style={{
+                      fontSize: '18px',
+                      fontWeight: '600',
+                      color: '#495057',
+                      marginBottom: '8px'
+                    }}>
+                      {p.name}
+                      {stockStatus === 'low' && <span style={{marginLeft: '10px', fontSize: '14px'}}>⚠️</span>}
+                    </div>
+                    <div className="product-details" style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                      gap: '10px',
+                      fontSize: '14px',
+                      color: '#6c757d'
+                    }}>
+                      <div><strong>Serie:</strong> {p.serial_number || 'N/A'}</div>
+                      <div><strong>Marca:</strong> {p.brand || 'N/A'}</div>
+                      <div><strong>Categoría:</strong> {p.category_name || 'Sin categoría'}</div>
+                      <div><strong>Ubicación:</strong> {p.location || 'N/A'}</div>
+                    </div>
+                  </div>
+                  <div style={{
+                    textAlign: 'center',
+                    minWidth: '120px',
+                    padding: '10px',
+                    borderRadius: '8px',
+                    backgroundColor: stockColor,
+                    color: 'white'
+                  }}>
+                    <div style={{fontSize: '24px', fontWeight: 'bold'}}>{p.quantity}</div>
+                    <div style={{fontSize: '12px', opacity: 0.9}}>unidades</div>
+                    {stockStatus === 'low' && (
+                      <div style={{fontSize: '11px', marginTop: '4px'}}>STOCK BAJO</div>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="product-quantity">{p.quantity} unidades</div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
         {products.length === 0 && !loading && (
           <p style={{textAlign: 'center', color: '#666', padding: '40px'}}>

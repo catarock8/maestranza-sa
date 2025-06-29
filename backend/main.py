@@ -50,13 +50,45 @@ def root():
 
 # Products CRUD (sin autenticación por ahora)
 @app.get('/products')
-def list_products(category_id: int = None):
+def list_products(
+    category_id: int = None, 
+    brand: str = None, 
+    min_stock: int = None,
+    max_stock: int = None,
+    search: str = None,
+    order_by: str = 'name',
+    order_dir: str = 'asc'
+):
     try:
-        # Filtrar por categoría si se especifica
+        # Construir query base
+        query = Product.select()
+        
+        # Aplicar filtros
         if category_id:
-            products = list(Product.select().where(Product.category == category_id).dicts())
-        else:
-            products = list(Product.select().dicts())
+            query = query.where(Product.category == category_id)
+        
+        if brand:
+            query = query.where(Product.brand.ilike(f'%{brand}%'))
+        
+        if min_stock is not None:
+            query = query.where(Product.quantity >= min_stock)
+            
+        if max_stock is not None:
+            query = query.where(Product.quantity <= max_stock)
+        
+        if search:
+            query = query.where(
+                (Product.name.ilike(f'%{search}%')) |
+                (Product.serial_number.ilike(f'%{search}%'))
+            )
+        
+        # Aplicar ordenamiento
+        order_field = getattr(Product, order_by, Product.name)
+        if order_dir.lower() == 'desc':
+            order_field = order_field.desc()
+        query = query.order_by(order_field)
+        
+        products = list(query.dicts())
         
         # Agregar información de categoría manualmente
         for product in products:
@@ -171,6 +203,20 @@ def report_expiry(days: int = 30):
 @app.get('/categories')
 def list_categories():
     return list(Category.select().dicts())
+
+# Endpoint para obtener marcas únicas
+@app.get('/brands')
+def list_brands():
+    try:
+        brands = (Product
+                 .select(Product.brand)
+                 .where(Product.brand.is_null(False) & (Product.brand != ''))
+                 .distinct()
+                 .order_by(Product.brand))
+        return [{'name': brand.brand} for brand in brands]
+    except Exception as e:
+        print(f"Error fetching brands: {e}")
+        return []
 
 @app.post('/categories')
 def add_category(name: str, description: str = None):
