@@ -52,8 +52,31 @@ def root():
 @app.get('/products')
 def list_products(category_id: int = None):
     try:
-        # Versión muy simple para diagnosticar
-        products = list(Product.select().dicts())
+        # Filtrar por categoría si se especifica
+        if category_id:
+            products = list(Product.select().where(Product.category == category_id).dicts())
+        else:
+            products = list(Product.select().dicts())
+        
+        # Agregar información de categoría manualmente
+        for product in products:
+            category_id_field = product.get('category')
+            if category_id_field:
+                try:
+                    category = Category.get_by_id(category_id_field)
+                    product['category_name'] = category.name
+                    product['category_id'] = category.id
+                except DoesNotExist:
+                    product['category_name'] = 'Categoría no encontrada'
+                    product['category_id'] = None
+                except Exception as e:
+                    print(f"Error getting category {category_id_field}: {e}")
+                    product['category_name'] = 'Error cargando categoría'
+                    product['category_id'] = None
+            else:
+                product['category_name'] = None
+                product['category_id'] = None
+        
         return products
     except Exception as e:
         print(f"Error in list_products: {e}")
