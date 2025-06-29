@@ -4,7 +4,7 @@ from peewee import DoesNotExist, OperationalError
 from datetime import datetime
 import os
 
-from database import init_db, Product, Batch, Movement, Category, list_existing_tables, describe_table, drop_all_tables
+from database import init_db, Product, Batch, Movement, Category
 
 # App setup
 app = FastAPI(title="Inventarios Maestranzas S.A.")
@@ -156,40 +156,6 @@ def report_expiry(days: int = 30):
     batches = Batch.select().where(Batch.expiry_date <= cutoff)
     return {'expires_within_days': days, 'batches': list(batches.dicts())}
 
-# Endpoint temporal para crear categorías de ejemplo
-@app.post('/create-sample-categories')
-def create_sample_categories():
-    try:
-        sample_categories = [
-            {'name': 'Sujetadores', 'description': 'Tornillos, tuercas, arandelas y elementos de sujeción'},
-            {'name': 'Herramientas', 'description': 'Herramientas manuales y eléctricas'},
-            {'name': 'Soldadura', 'description': 'Electrodos, varillas y consumibles de soldadura'},
-            {'name': 'Lubricantes', 'description': 'Aceites, grasas y lubricantes industriales'},
-            {'name': 'Materiales', 'description': 'Chapas, perfiles y materiales en bruto'},
-        ]
-        
-        created_count = 0
-        for cat_data in sample_categories:
-            # Verificar si ya existe
-            existing = Category.select().where(Category.name == cat_data['name']).first()
-            if not existing:
-                Category.create(**cat_data)
-                created_count += 1
-        
-        total_categories = Category.select().count()
-        return {
-            'msg': f'Categorías de muestra creadas: {created_count}',
-            'total_categories': total_categories,
-            'created': created_count
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error creando categorías: {str(e)}')
-
-# GET version para probar desde navegador
-@app.get('/create-sample-categories')
-def create_sample_categories_get():
-    return create_sample_categories()
-
 # Categories CRUD (sin autenticación por ahora)
 @app.get('/categories')
 def list_categories():
@@ -222,109 +188,5 @@ def delete_category(category_id: int):
         raise HTTPException(404, 'Category not found')
     category.delete_instance()
     return {'msg': 'Category deleted'}
-
-# Endpoint temporal para crear productos de ejemplo con categorías
-@app.post('/create-sample-products-with-categories')
-def create_sample_products_with_categories():
-    try:
-        # Primero asegurar que las categorías existen
-        create_sample_categories()
-        
-        # Obtener categorías creadas
-        sujetadores = Category.select().where(Category.name == 'Sujetadores').first()
-        herramientas = Category.select().where(Category.name == 'Herramientas').first()
-        soldadura = Category.select().where(Category.name == 'Soldadura').first()
-        
-        sample_products = [
-            {'name': 'Tuerca M8', 'serial_number': 'TM8-001', 'location': 'Estante A1', 'brand': 'ACME', 'quantity': 150, 'category': sujetadores.id if sujetadores else None},
-            {'name': 'Tornillo M6x20', 'serial_number': 'TM6-020', 'location': 'Estante A2', 'brand': 'Stanley', 'quantity': 200, 'category': sujetadores.id if sujetadores else None},
-            {'name': 'Arandela 8mm', 'serial_number': 'AR8-001', 'location': 'Estante B1', 'brand': 'Bosch', 'quantity': 75, 'category': sujetadores.id if sujetadores else None},
-            {'name': 'Perno M10x30', 'serial_number': 'PM10-030', 'location': 'Estante B2', 'brand': 'Makita', 'quantity': 90, 'category': sujetadores.id if sujetadores else None},
-            {'name': 'Electrodo 6013', 'serial_number': 'EL6013-001', 'location': 'Estante C1', 'brand': 'Lincoln', 'quantity': 500, 'category': soldadura.id if soldadura else None},
-            {'name': 'Taladro 12V', 'serial_number': 'TAL12V-001', 'location': 'Herramientas', 'brand': 'DeWalt', 'quantity': 3, 'category': herramientas.id if herramientas else None},
-        ]
-        
-        created_count = 0
-        updated_count = 0
-        for prod_data in sample_products:
-            # Verificar si ya existe
-            existing = Product.select().where(Product.serial_number == prod_data['serial_number']).first()
-            if not existing:
-                Product.create(**prod_data)
-                created_count += 1
-            else:
-                # Actualizar categoría si no la tiene
-                if not existing.category and prod_data.get('category'):
-                    existing.category = prod_data['category']
-                    existing.save()
-                    updated_count += 1
-        
-        total_products = Product.select().count()
-        return {
-            'msg': f'Productos procesados - Creados: {created_count}, Actualizados: {updated_count}',
-            'total_products': total_products,
-            'created': created_count,
-            'updated': updated_count
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error procesando productos: {str(e)}')
-
-# GET version para probar desde navegador
-@app.get('/create-sample-products-with-categories')
-def create_sample_products_with_categories_get():
-    return create_sample_products_with_categories()
-
-# Endpoint temporal para investigar la base de datos
-@app.get('/debug/database-info')
-def get_database_info():
-    try:
-        from database import list_existing_tables, describe_table
-        
-        tables = list_existing_tables()
-        
-        # Obtener información detallada de las tablas principales
-        table_info = {}
-        important_tables = ['product', 'category', 'movement', 'batch']
-        
-        for table in tables:
-            if table.lower() in important_tables:
-                table_info[table] = describe_table(table)
-        
-        return {
-            'total_tables': len(tables),
-            'all_tables': tables,
-            'important_tables_structure': table_info
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error getting database info: {str(e)}')
-
-# 🚨 PELIGRO: Endpoint para limpiar TODA la base de datos
-@app.post('/debug/clean-database')
-def clean_database():
-    try:
-        from database import drop_all_tables, init_db
-        
-        # Eliminar todas las tablas
-        success = drop_all_tables()
-        if not success:
-            raise HTTPException(status_code=500, detail="Error eliminando tablas")
-        
-        # Recrear las tablas limpias
-        init_success = init_db()
-        if not init_success:
-            raise HTTPException(status_code=500, detail="Error recreando tablas")
-        
-        return {
-            'msg': '🧹 Base de datos limpiada y recreada exitosamente',
-            'status': 'success',
-            'tables_created': ['category', 'product', 'batch', 'movement']
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f'Error limpiando base de datos: {str(e)}')
-
-# GET version para usar desde navegador
-@app.get('/debug/clean-database')
-def clean_database_get():
-    return clean_database()
 
 
