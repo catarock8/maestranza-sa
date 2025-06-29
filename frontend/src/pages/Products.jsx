@@ -337,8 +337,8 @@ export default function Products() {
                 marginBottom: '10px',
                 backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white'
               }}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                  <div className="product-info" style={{flex: 1, marginRight: '20px'}}>
+                <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                  <div className="product-info" style={{flex: 1}}>
                     <div className="product-name" style={{
                       fontSize: '18px',
                       fontWeight: '600',
@@ -362,20 +362,26 @@ export default function Products() {
                     </div>
                   </div>
                   <div style={{
-                    textAlign: 'center',
-                    minWidth: '80px',
-                    maxWidth: '90px',
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    backgroundColor: stockColor,
-                    color: 'white',
-                    marginLeft: 'auto'
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    marginLeft: '20px'
                   }}>
-                    <div style={{fontSize: '16px', fontWeight: 'bold'}}>{p.quantity}</div>
-                    <div style={{fontSize: '10px', opacity: 0.9}}>unidades</div>
-                    {stockStatus === 'low' && (
-                      <div style={{fontSize: '9px', marginTop: '2px'}}>STOCK BAJO</div>
-                    )}
+                    <div style={{
+                      textAlign: 'center',
+                      minWidth: '80px',
+                      maxWidth: '90px',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      backgroundColor: stockColor,
+                      color: 'white'
+                    }}>
+                      <div style={{fontSize: '16px', fontWeight: 'bold'}}>{p.quantity}</div>
+                      <div style={{fontSize: '10px', opacity: 0.9}}>unidades</div>
+                      {stockStatus === 'low' && (
+                        <div style={{fontSize: '9px', marginTop: '2px'}}>STOCK BAJO</div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </li>
