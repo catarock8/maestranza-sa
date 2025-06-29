@@ -10,15 +10,9 @@ from database import init_db, Product, Batch, Movement, Category
 app = FastAPI(title="Inventarios Maestranzas S.A.")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",           # Frontend local
-        "http://127.0.0.1:3000",          # Frontend local alternativo
-        "http://54.233.95.170:3000",      # Frontend en EC2
-        "http://54.233.95.170",           # EC2 sin puerto
-        "*"                               # Permitir todo (solo para desarrollo)
-    ],
+    allow_origins=["*"],  # Permitir todo temporalmente
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -57,25 +51,13 @@ def root():
 # Products CRUD (sin autenticación por ahora)
 @app.get('/products')
 def list_products(category_id: int = None):
-    query = Product.select(Product, Category).join(Category, join_type='LEFT')
-    
-    # Filtrar por categoría si se especifica
-    if category_id:
-        query = query.where(Product.category == category_id)
-    
-    products = []
-    for product in query:
-        product_dict = product.__data__.copy()
-        # Agregar información de categoría
-        if product.category:
-            product_dict['category_name'] = product.category.name
-            product_dict['category_id'] = product.category.id
-        else:
-            product_dict['category_name'] = None
-            product_dict['category_id'] = None
-        products.append(product_dict)
-    
-    return products
+    try:
+        # Versión muy simple para diagnosticar
+        products = list(Product.select().dicts())
+        return products
+    except Exception as e:
+        print(f"Error in list_products: {e}")
+        return {"error": str(e), "products": []}
 
 @app.post('/products')
 def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0):
