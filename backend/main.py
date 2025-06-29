@@ -10,9 +10,15 @@ from database import init_db, Product, Batch, Movement, Category
 app = FastAPI(title="Inventarios Maestranzas S.A.")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:3000",           # Frontend local
+        "http://127.0.0.1:3000",          # Frontend local alternativo
+        "http://54.233.95.170:3000",      # Frontend en EC2
+        "http://54.233.95.170",           # EC2 sin puerto
+        "*"                               # Permitir todo (solo para desarrollo)
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
