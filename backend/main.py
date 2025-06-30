@@ -60,8 +60,16 @@ def list_products(
     order_dir: str = 'asc'
 ):
     try:
-        # Construir query base
-        query = Product.select()
+        # Construir query base - especificar campos explícitamente para evitar errores
+        query = Product.select(
+            Product.id,
+            Product.name,
+            Product.serial_number,
+            Product.brand,
+            Product.location,
+            Product.quantity,
+            Product.category
+        )
         
         # Aplicar filtros
         if category_id:
@@ -92,6 +100,9 @@ def list_products(
         
         # Agregar información de categoría manualmente
         for product in products:
+            # Agregar image_url como null por defecto (hasta que se agregue la columna a la DB)
+            product['image_url'] = None
+            
             category_id_field = product.get('category')
             if category_id_field:
                 try:
@@ -115,15 +126,15 @@ def list_products(
         return []  # Devolver array vacío en lugar de objeto
 
 @app.post('/products')
-def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0, image_url: str = None):
+def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0):
+    # Temporalmente sin image_url hasta que se agregue la columna
     prod = Product.create(
         name=name, 
         serial_number=serial_number, 
         location=location, 
         brand=brand,
         category=category_id if category_id else None,
-        quantity=quantity,
-        image_url=image_url
+        quantity=quantity
     )
     return prod.__data__
 

@@ -361,7 +361,7 @@ export default function Products() {
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    {p.image_url ? (
+                    {p.image_url && p.image_url.trim() !== '' ? (
                       <img 
                         src={p.image_url} 
                         alt={p.name}
@@ -377,7 +377,7 @@ export default function Products() {
                       />
                     ) : null}
                     <div style={{
-                      display: p.image_url ? 'none' : 'flex',
+                      display: (p.image_url && p.image_url.trim() !== '') ? 'none' : 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       width: '100%',
