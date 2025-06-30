@@ -514,14 +514,13 @@ export default function Products() {
                 {isExpanded && (
                   <div style={{
                     marginTop: '20px',
-                    marginLeft: '-15px',    // Compensar padding del li
-                    marginRight: '-15px',   // Compensar padding del li
-                    marginBottom: '-15px',  // Compensar padding del li
-                    paddingTop: '20px',
+                    marginLeft: '-15px',
+                    marginRight: '-15px',
+                    marginBottom: '-15px',
                     borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
                     borderRadius: '0 0 8px 8px',
-                    padding: '20px',
+                    padding: '20px 15px 15px 15px', // padding ajustado para compensar los márgenes
                     clear: 'both',
                     display: 'block'
                   }}>
