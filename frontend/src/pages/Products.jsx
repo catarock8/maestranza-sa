@@ -63,7 +63,16 @@ export default function Products() {
       const url = queryString ? `/products?${queryString}` : '/products';
       const response = await api.get(url);
       
-      setProducts(response.data);
+      // Verificar que la respuesta sea un array
+      if (Array.isArray(response.data)) {
+        setProducts(response.data);
+      } else if (response.data && Array.isArray(response.data.products)) {
+        // Si viene en formato { products: [...] }
+        setProducts(response.data.products);
+      } else {
+        console.error('Response is not an array:', response.data);
+        setProducts([]);
+      }
       setError('');
     } catch (err) {
       console.error('Error fetching products:', err);
@@ -315,7 +324,7 @@ export default function Products() {
         </div>
 
         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px'}}>
-          <h2>Productos en Inventario ({products.length})</h2>
+          <h2>Productos en Inventario ({Array.isArray(products) ? products.length : 0})</h2>
         </div>
         
         {error && (
@@ -325,7 +334,7 @@ export default function Products() {
         )}
         
         <ul className="products-list">
-          {products.map(p => {
+          {Array.isArray(products) && products.map(p => {
             const stockStatus = p.quantity <= 10 ? 'low' : p.quantity <= 50 ? 'medium' : 'high';
             const stockColor = stockStatus === 'low' ? '#dc3545' : stockStatus === 'medium' ? '#ffc107' : '#28a745';
             
@@ -430,7 +439,7 @@ export default function Products() {
             );
           })}
         </ul>
-        {products.length === 0 && !loading && (
+        {(!Array.isArray(products) || products.length === 0) && !loading && (
           <p style={{textAlign: 'center', color: '#666', padding: '40px'}}>
             No hay productos registrados en el inventario
           </p>

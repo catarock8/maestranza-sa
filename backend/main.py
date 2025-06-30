@@ -112,7 +112,7 @@ def list_products(
         return products
     except Exception as e:
         print(f"Error in list_products: {e}")
-        return {"error": str(e), "products": []}
+        return []  # Devolver array vacío en lugar de objeto
 
 @app.post('/products')
 def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0, image_url: str = None):
