@@ -16,6 +16,7 @@ export default function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedProducts, setExpandedProducts] = useState(new Set()); // Para controlar productos expandidos
+  const [imageModal, setImageModal] = useState({ isOpen: false, imageUrl: '', productName: '' }); // Para el modal de imagen
 
   useEffect(() => {
     fetchCategories();
@@ -132,6 +133,14 @@ export default function Products() {
     } catch {
       return 'Fecha inválida';
     }
+  };
+
+  const openImageModal = (imageUrl, productName) => {
+    setImageModal({ isOpen: true, imageUrl, productName });
+  };
+
+  const closeImageModal = () => {
+    setImageModal({ isOpen: false, imageUrl: '', productName: '' });
   };
 
   return (
@@ -393,8 +402,25 @@ export default function Products() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
-                  }}>
+                    flexShrink: 0,
+                    cursor: p.image_url && p.image_url.trim() !== '' ? 'pointer' : 'default',
+                    transition: 'transform 0.2s ease'
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Evitar que se expanda el producto al hacer clic en la imagen
+                    if (p.image_url && p.image_url.trim() !== '') {
+                      openImageModal(p.image_url, p.name);
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    if (p.image_url && p.image_url.trim() !== '') {
+                      e.target.style.transform = 'scale(1.05)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                  >
                     {p.image_url && p.image_url.trim() !== '' ? (
                       <img 
                         src={p.image_url} 
@@ -484,18 +510,20 @@ export default function Products() {
                   </div>
                 </div>
                 
-                {/* Panel expandido con información adicional - COMPLETAMENTE SEPARADO */}
+                {/* Panel expandido con información adicional - DENTRO DEL CONTENEDOR */}
                 {isExpanded && (
                   <div style={{
-                    width: '100%',
+                    width: 'calc(100% - 30px)', // Ajustar para que no se salga del contenedor
                     marginTop: '20px',
                     paddingTop: '20px',
                     borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
                     borderRadius: '8px',
-                    padding: '25px',
-                    clear: 'both', // Asegurar que aparezca abajo
-                    display: 'block' // Forzar que sea un bloque completo
+                    padding: '20px',
+                    clear: 'both',
+                    display: 'block',
+                    marginLeft: '0px',
+                    marginRight: '0px'
                   }}>
                     <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
@@ -586,39 +614,6 @@ export default function Products() {
                         </div>
                       </div>
                     </div>
-                    
-                    {/* Sección de imagen expandida si existe */}
-                    {p.image_url && p.image_url.trim() !== '' && (
-                      <div style={{
-                        backgroundColor: 'white',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        border: '1px solid #e9ecef',
-                        textAlign: 'center',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                        width: '100%'
-                      }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '15px', fontSize: '15px'}}>🖼️ Imagen del Producto</div>
-                        <img 
-                          src={p.image_url} 
-                          alt={p.name}
-                          style={{
-                            maxWidth: '300px',
-                            maxHeight: '300px',
-                            borderRadius: '8px',
-                            border: '1px solid #e9ecef',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'block';
-                          }}
-                        />
-                        <div style={{display: 'none', color: '#6c757d', fontStyle: 'italic', marginTop: '10px'}}>
-                          Error cargando imagen
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </li>
@@ -631,6 +626,85 @@ export default function Products() {
           </p>
         )}
       </div>
+      
+      {/* Modal para mostrar imagen ampliada */}
+      {imageModal.isOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}
+        onClick={closeImageModal}
+        >
+          <div style={{
+            position: 'relative',
+            maxWidth: '90%',
+            maxHeight: '90%',
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
+          }}
+          onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={closeImageModal}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: '#dc3545',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '30px',
+                height: '30px',
+                cursor: 'pointer',
+                fontSize: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ×
+            </button>
+            <h3 style={{margin: '0 0 15px 0', color: '#495057', textAlign: 'center'}}>
+              {imageModal.productName}
+            </h3>
+            <img 
+              src={imageModal.imageUrl} 
+              alt={imageModal.productName}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '70vh',
+                borderRadius: '8px',
+                display: 'block',
+                margin: '0 auto'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+            <div style={{
+              display: 'none', 
+              textAlign: 'center', 
+              color: '#6c757d', 
+              fontStyle: 'italic',
+              marginTop: '20px'
+            }}>
+              Error cargando imagen
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
