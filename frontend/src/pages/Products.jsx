@@ -15,6 +15,7 @@ export default function Products() {
   const [orderDir, setOrderDir] = useState('asc');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [expandedProducts, setExpandedProducts] = useState(new Set()); // Para controlar productos expandidos
 
   useEffect(() => {
     fetchCategories();
@@ -106,6 +107,31 @@ export default function Products() {
     setMaxStock('10');
     setOrderBy('quantity');
     setOrderDir('asc');
+  };
+
+  const toggleProductExpansion = (productId) => {
+    const newExpanded = new Set(expandedProducts);
+    if (newExpanded.has(productId)) {
+      newExpanded.delete(productId);
+    } else {
+      newExpanded.add(productId);
+    }
+    setExpandedProducts(newExpanded);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Fecha inválida';
+    }
   };
 
   return (
@@ -337,6 +363,7 @@ export default function Products() {
           {Array.isArray(products) && products.map(p => {
             const stockStatus = p.quantity <= 10 ? 'low' : p.quantity <= 50 ? 'medium' : 'high';
             const stockColor = stockStatus === 'low' ? '#dc3545' : stockStatus === 'medium' ? '#ffc107' : '#28a745';
+            const isExpanded = expandedProducts.has(p.id);
             
             return (
               <li key={p.id} style={{
@@ -344,8 +371,13 @@ export default function Products() {
                 borderRadius: '8px',
                 padding: '15px',
                 marginBottom: '10px',
-                backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white'
-              }}>
+                backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: isExpanded ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)'
+              }}
+              onClick={() => toggleProductExpansion(p.id)}
+              >
                 <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
                   {/* Contenedor de imagen */}
                   <div style={{
@@ -389,15 +421,27 @@ export default function Products() {
                     </div>
                   </div>
                   
+                  {/* Información básica del producto */}
                   <div className="product-info" style={{flex: 1}}>
                     <div className="product-name" style={{
                       fontSize: '18px',
                       fontWeight: '600',
                       color: '#495057',
-                      marginBottom: '8px'
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center'
                     }}>
                       {p.name}
                       {stockStatus === 'low' && <span style={{marginLeft: '10px', fontSize: '14px'}}>⚠️</span>}
+                      <span style={{
+                        marginLeft: 'auto',
+                        fontSize: '14px',
+                        color: '#6c757d',
+                        transition: 'transform 0.2s ease',
+                        transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                      }}>
+                        ▼
+                      </span>
                     </div>
                     <div className="product-details" style={{
                       display: 'grid',
@@ -412,6 +456,8 @@ export default function Products() {
                       <div><strong>Ubicación:</strong> {p.location || 'N/A'}</div>
                     </div>
                   </div>
+                  
+                  {/* Indicador de cantidad */}
                   <div style={{
                     display: 'flex',
                     justifyContent: 'flex-end',
@@ -435,6 +481,134 @@ export default function Products() {
                     </div>
                   </div>
                 </div>
+                
+                {/* Panel expandido con información adicional */}
+                {isExpanded && (
+                  <div style={{
+                    marginTop: '15px',
+                    paddingTop: '15px',
+                    borderTop: '1px solid #e9ecef',
+                    backgroundColor: '#f8f9fa',
+                    margin: '15px -15px -15px -15px',
+                    padding: '20px',
+                    borderRadius: '0 0 8px 8px'
+                  }}>
+                    <h4 style={{margin: '0 0 15px 0', color: '#495057', fontSize: '16px'}}>
+                      📋 Información Detallada
+                    </h4>
+                    
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                      gap: '15px',
+                      marginBottom: '15px'
+                    }}>
+                      <div className="detail-card" style={{
+                        backgroundColor: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>🏷️ Identificación</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div><strong>SKU:</strong> {p.sku || 'No asignado'}</div>
+                          <div><strong>N° Serie:</strong> {p.serial_number || 'No asignado'}</div>
+                          <div><strong>Descripción:</strong> {p.description || 'Sin descripción'}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-card" style={{
+                        backgroundColor: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>📊 Control de Stock</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div><strong>Stock Actual:</strong> <span style={{color: stockColor, fontWeight: 'bold'}}>{p.quantity}</span></div>
+                          <div><strong>Stock Mínimo:</strong> {p.min_stock || 0}</div>
+                          <div><strong>Stock Máximo:</strong> {p.max_stock || 'Sin límite'}</div>
+                          <div><strong>Unidad:</strong> {p.unit_of_measure || 'unidades'}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-card" style={{
+                        backgroundColor: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>⚙️ Estado y Control</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div><strong>Estado:</strong> 
+                            <span style={{
+                              marginLeft: '8px',
+                              padding: '2px 8px',
+                              borderRadius: '12px',
+                              fontSize: '12px',
+                              backgroundColor: p.is_active ? '#d4edda' : '#f8d7da',
+                              color: p.is_active ? '#155724' : '#721c24'
+                            }}>
+                              {p.is_active ? '✅ Activo' : '❌ Inactivo'}
+                            </span>
+                          </div>
+                          <div><strong>Control de Vencimiento:</strong> 
+                            <span style={{
+                              marginLeft: '8px',
+                              color: p.requires_expiry_control ? '#dc3545' : '#6c757d'
+                            }}>
+                              {p.requires_expiry_control ? '⏰ Requerido' : '🔒 No aplica'}
+                            </span>
+                          </div>
+                          <div><strong>Ubicación:</strong> {p.location || 'Sin ubicación'}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-card" style={{
+                        backgroundColor: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef'
+                      }}>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>📅 Fechas</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div><strong>Creado:</strong> {formatDate(p.created_at)}</div>
+                          <div><strong>Actualizado:</strong> {formatDate(p.updated_at)}</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Sección de imagen expandida si existe */}
+                    {p.image_url && p.image_url.trim() !== '' && (
+                      <div style={{
+                        backgroundColor: 'white',
+                        padding: '12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e9ecef',
+                        textAlign: 'center'
+                      }}>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>🖼️ Imagen del Producto</div>
+                        <img 
+                          src={p.image_url} 
+                          alt={p.name}
+                          style={{
+                            maxWidth: '200px',
+                            maxHeight: '200px',
+                            borderRadius: '8px',
+                            border: '1px solid #e9ecef'
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'block';
+                          }}
+                        />
+                        <div style={{display: 'none', color: '#6c757d', fontStyle: 'italic'}}>
+                          Error cargando imagen
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </li>
             );
           })}

@@ -60,16 +60,25 @@ def list_products(
     order_dir: str = 'asc'
 ):
     try:
-        # Construir query base - ahora incluyendo image_url
+        # Construir query base - incluyendo todos los campos
         query = Product.select(
             Product.id,
             Product.name,
+            Product.description,
             Product.serial_number,
+            Product.sku,
             Product.brand,
             Product.location,
             Product.quantity,
+            Product.min_stock,
+            Product.max_stock,
+            Product.unit_of_measure,
+            Product.image_url,
             Product.category,
-            Product.image_url
+            Product.is_active,
+            Product.requires_expiry_control,
+            Product.created_at,
+            Product.updated_at
         )
         
         # Aplicar filtros
