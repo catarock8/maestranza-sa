@@ -42,6 +42,7 @@ class Product(BaseModel):
     min_stock = IntegerField(default=0)
     max_stock = IntegerField(null=True)
     unit_of_measure = CharField(max_length=20, default='units')
+    image_url = CharField(max_length=500, null=True)  # Campo para URL de imagen
     is_active = BooleanField(default=True)
     requires_expiry_control = BooleanField(default=False)
 

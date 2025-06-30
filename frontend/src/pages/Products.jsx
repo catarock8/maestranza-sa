@@ -71,10 +71,10 @@ export default function Products() {
       
       // Datos de ejemplo como fallback
       const mockProducts = [
-        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', brand: 'ACME', quantity: 150, category_name: 'Sujetadores' },
-        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', brand: 'Stanley', quantity: 200, category_name: 'Sujetadores' },
-        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', brand: 'Bosch', quantity: 75, category_name: 'Sujetadores' },
-        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', brand: 'Makita', quantity: 90, category_name: 'Sujetadores' },
+        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', brand: 'ACME', quantity: 150, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=🔩' },
+        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', brand: 'Stanley', quantity: 200, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=🔧' },
+        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', brand: 'Bosch', quantity: 75, category_name: 'Sujetadores', image_url: null },
+        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', brand: 'Makita', quantity: 90, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=⚙️' },
       ];
       setProducts(mockProducts);
     } finally {
@@ -338,6 +338,48 @@ export default function Products() {
                 backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white'
               }}>
                 <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                  {/* Contenedor de imagen */}
+                  <div style={{
+                    width: '80px',
+                    height: '80px',
+                    marginRight: '15px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    border: '2px solid #e9ecef',
+                    backgroundColor: '#f8f9fa',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {p.image_url ? (
+                      <img 
+                        src={p.image_url} 
+                        alt={p.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div style={{
+                      display: p.image_url ? 'none' : 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                      fontSize: '24px',
+                      color: '#6c757d'
+                    }}>
+                      📦
+                    </div>
+                  </div>
+                  
                   <div className="product-info" style={{flex: 1}}>
                     <div className="product-name" style={{
                       fontSize: '18px',

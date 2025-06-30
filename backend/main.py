@@ -115,14 +115,15 @@ def list_products(
         return {"error": str(e), "products": []}
 
 @app.post('/products')
-def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0):
+def add_product(name: str, serial_number: str, location: str, brand: str = None, category_id: int = None, quantity: int = 0, image_url: str = None):
     prod = Product.create(
         name=name, 
         serial_number=serial_number, 
         location=location, 
         brand=brand,
         category=category_id if category_id else None,
-        quantity=quantity
+        quantity=quantity,
+        image_url=image_url
     )
     return prod.__data__
 
