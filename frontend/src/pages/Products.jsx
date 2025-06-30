@@ -368,7 +368,14 @@ export default function Products() {
           </div>
         )}
         
-        <ul className="products-list">
+        <ul className="products-list" style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box'
+        }}>
           {Array.isArray(products) && products.map(p => {
             const stockStatus = p.quantity <= 10 ? 'low' : p.quantity <= 50 ? 'medium' : 'high';
             const stockColor = stockStatus === 'low' ? '#dc3545' : stockStatus === 'medium' ? '#ffc107' : '#28a745';
@@ -384,12 +391,15 @@ export default function Products() {
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 boxShadow: isExpanded ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)',
-                display: 'block', // Cambiar a block para que el contenido expandido vaya abajo
-                width: '100%'
+                display: 'block',
+                width: '100%',
+                boxSizing: 'border-box',
+                maxWidth: '100%',
+                overflow: 'hidden'
               }}
               onClick={() => toggleProductExpansion(p.id)}
               >
-                <div style={{display: 'flex', alignItems: 'center', width: '100%'}}>
+                <div style={{display: 'flex', alignItems: 'center', width: '100%', boxSizing: 'border-box', minWidth: 0}}>
                   {/* Contenedor de imagen */}
                   <div style={{
                     width: '80px',
@@ -519,99 +529,112 @@ export default function Products() {
                     borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
                     borderRadius: '0 0 8px 8px',
-                    padding: '20px',
+                    padding: window.innerWidth <= 768 ? '10px' : '15px',
                     clear: 'both',
                     display: 'block',
                     boxSizing: 'border-box',
                     overflow: 'hidden'
                   }}>
-                    <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
+                    <h4 style={{margin: '0 0 15px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
                     </h4>
                     
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                      gap: '20px',
-                      marginBottom: '20px',
+                      gridTemplateColumns: window.innerWidth <= 768 
+                        ? '1fr' 
+                        : window.innerWidth <= 1024 
+                          ? 'repeat(auto-fit, minmax(min(300px, 100%), 1fr))' 
+                          : 'repeat(auto-fit, minmax(min(250px, 100%), 1fr))',
+                      gap: window.innerWidth <= 768 ? '10px' : '15px',
+                      marginBottom: '0',
                       width: '100%',
                       maxWidth: '100%',
                       boxSizing: 'border-box'
                     }}>
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '15px',
-                        borderRadius: '8px',
+                        padding: '12px',
+                        borderRadius: '6px',
                         border: '1px solid #e9ecef',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        minWidth: 0,
+                        overflow: 'hidden'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>🏷️ Identificación</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
-                          <div style={{marginBottom: '6px'}}><strong>SKU:</strong> {p.sku || 'No asignado'}</div>
-                          <div style={{marginBottom: '6px'}}><strong>N° Serie:</strong> {p.serial_number || 'No asignado'}</div>
-                          <div><strong>Descripción:</strong> {p.description || 'Sin descripción'}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '10px', fontSize: '14px'}}>🏷️ Identificación</div>
+                        <div style={{fontSize: '13px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div style={{marginBottom: '4px', wordBreak: 'break-word'}}><strong>SKU:</strong> {p.sku || 'No asignado'}</div>
+                          <div style={{marginBottom: '4px', wordBreak: 'break-word'}}><strong>N° Serie:</strong> {p.serial_number || 'No asignado'}</div>
+                          <div style={{wordBreak: 'break-word'}}><strong>Descripción:</strong> {p.description || 'Sin descripción'}</div>
                         </div>
                       </div>
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '15px',
-                        borderRadius: '8px',
+                        padding: '12px',
+                        borderRadius: '6px',
                         border: '1px solid #e9ecef',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        minWidth: 0,
+                        overflow: 'hidden'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>📊 Control de Stock</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
-                          <div style={{marginBottom: '6px'}}><strong>Stock Actual:</strong> <span style={{color: stockColor, fontWeight: 'bold'}}>{p.quantity}</span></div>
-                          <div style={{marginBottom: '6px'}}><strong>Stock Mínimo:</strong> {p.min_stock || 0}</div>
-                          <div style={{marginBottom: '6px'}}><strong>Stock Máximo:</strong> {p.max_stock || 'Sin límite'}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '10px', fontSize: '14px'}}>📊 Control de Stock</div>
+                        <div style={{fontSize: '13px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div style={{marginBottom: '4px'}}><strong>Stock Actual:</strong> <span style={{color: stockColor, fontWeight: 'bold'}}>{p.quantity}</span></div>
+                          <div style={{marginBottom: '4px'}}><strong>Stock Mínimo:</strong> {p.min_stock || 0}</div>
+                          <div style={{marginBottom: '4px'}}><strong>Stock Máximo:</strong> {p.max_stock || 'Sin límite'}</div>
                           <div><strong>Unidad:</strong> {p.unit_of_measure || 'unidades'}</div>
                         </div>
                       </div>
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '15px',
-                        borderRadius: '8px',
+                        padding: '12px',
+                        borderRadius: '6px',
                         border: '1px solid #e9ecef',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        minWidth: 0,
+                        overflow: 'hidden'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>⚙️ Estado y Control</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
-                          <div style={{marginBottom: '6px'}}><strong>Estado:</strong> 
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '10px', fontSize: '14px'}}>⚙️ Estado y Control</div>
+                        <div style={{fontSize: '13px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div style={{marginBottom: '4px'}}><strong>Estado:</strong> 
                             <span style={{
-                              marginLeft: '8px',
-                              padding: '3px 10px',
-                              borderRadius: '12px',
-                              fontSize: '12px',
+                              marginLeft: '6px',
+                              padding: '2px 8px',
+                              borderRadius: '10px',
+                              fontSize: '11px',
                               backgroundColor: p.is_active ? '#d4edda' : '#f8d7da',
                               color: p.is_active ? '#155724' : '#721c24'
                             }}>
                               {p.is_active ? '✅ Activo' : '❌ Inactivo'}
                             </span>
                           </div>
-                          <div style={{marginBottom: '6px'}}><strong>Control de Vencimiento:</strong> 
+                          <div style={{marginBottom: '4px'}}><strong>Control de Vencimiento:</strong> 
                             <span style={{
-                              marginLeft: '8px',
-                              color: p.requires_expiry_control ? '#dc3545' : '#6c757d'
+                              marginLeft: '6px',
+                              color: p.requires_expiry_control ? '#dc3545' : '#6c757d',
+                              fontSize: '12px'
                             }}>
                               {p.requires_expiry_control ? '⏰ Requerido' : '🔒 No aplica'}
                             </span>
                           </div>
-                          <div><strong>Ubicación:</strong> {p.location || 'Sin ubicación'}</div>
+                          <div style={{wordBreak: 'break-word'}}><strong>Ubicación:</strong> {p.location || 'Sin ubicación'}</div>
                         </div>
                       </div>
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '15px',
-                        borderRadius: '8px',
+                        padding: '12px',
+                        borderRadius: '6px',
                         border: '1px solid #e9ecef',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        minWidth: 0,
+                        overflow: 'hidden'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>📅 Fechas</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
-                          <div style={{marginBottom: '6px'}}><strong>Creado:</strong> {formatDate(p.created_at)}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '10px', fontSize: '14px'}}>📅 Fechas</div>
+                        <div style={{fontSize: '13px', color: '#6c757d', lineHeight: '1.4'}}>
+                          <div style={{marginBottom: '4px'}}><strong>Creado:</strong> {formatDate(p.created_at)}</div>
                           <div><strong>Actualizado:</strong> {formatDate(p.updated_at)}</div>
                         </div>
                       </div>
