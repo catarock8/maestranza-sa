@@ -514,14 +514,16 @@ export default function Products() {
                 {isExpanded && (
                   <div style={{
                     marginTop: '20px',
+                    marginLeft: '-15px',    // Compensar padding del li
+                    marginRight: '-15px',   // Compensar padding del li
+                    marginBottom: '-15px',  // Compensar padding del li
                     paddingTop: '20px',
                     borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
-                    borderRadius: '8px',
+                    borderRadius: '0 0 8px 8px',
                     padding: '20px',
                     clear: 'both',
                     display: 'block'
-                    // Eliminamos width, marginLeft y marginRight para que respete el contenedor padre
                   }}>
                     <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
