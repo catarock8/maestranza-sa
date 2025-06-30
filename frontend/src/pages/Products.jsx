@@ -513,7 +513,6 @@ export default function Products() {
                 {/* Panel expandido con información adicional - DENTRO DEL CONTENEDOR */}
                 {isExpanded && (
                   <div style={{
-                    width: 'calc(100% - 30px)', // Ajustar para que no se salga del contenedor
                     marginTop: '20px',
                     paddingTop: '20px',
                     borderTop: '2px solid #e9ecef',
@@ -521,9 +520,8 @@ export default function Products() {
                     borderRadius: '8px',
                     padding: '20px',
                     clear: 'both',
-                    display: 'block',
-                    marginLeft: '0px',
-                    marginRight: '0px'
+                    display: 'block'
+                    // Eliminamos width, marginLeft y marginRight para que respete el contenedor padre
                   }}>
                     <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
@@ -533,8 +531,8 @@ export default function Products() {
                       display: 'grid',
                       gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                       gap: '20px',
-                      marginBottom: '20px',
-                      width: '100%'
+                      marginBottom: '20px'
+                      // Eliminamos width: '100%' para que respete el contenedor
                     }}>
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
