@@ -374,7 +374,9 @@ export default function Products() {
                 backgroundColor: stockStatus === 'low' ? '#fff5f5' : 'white',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
-                boxShadow: isExpanded ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)'
+                boxShadow: isExpanded ? '0 4px 12px rgba(0,0,0,0.1)' : '0 2px 4px rgba(0,0,0,0.05)',
+                display: 'block', // Cambiar a block para que el contenido expandido vaya abajo
+                width: '100%'
               }}
               onClick={() => toggleProductExpansion(p.id)}
               >
@@ -482,16 +484,18 @@ export default function Products() {
                   </div>
                 </div>
                 
-                {/* Panel expandido con información adicional */}
+                {/* Panel expandido con información adicional - COMPLETAMENTE SEPARADO */}
                 {isExpanded && (
                   <div style={{
+                    width: '100%',
                     marginTop: '20px',
                     paddingTop: '20px',
                     borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
-                    margin: '20px -15px -15px -15px',
+                    borderRadius: '8px',
                     padding: '25px',
-                    borderRadius: '0 0 8px 8px'
+                    clear: 'both', // Asegurar que aparezca abajo
+                    display: 'block' // Forzar que sea un bloque completo
                   }}>
                     <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
@@ -501,7 +505,8 @@ export default function Products() {
                       display: 'grid',
                       gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
                       gap: '20px',
-                      marginBottom: '20px'
+                      marginBottom: '20px',
+                      width: '100%'
                     }}>
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
@@ -590,7 +595,8 @@ export default function Products() {
                         borderRadius: '8px',
                         border: '1px solid #e9ecef',
                         textAlign: 'center',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                        width: '100%'
                       }}>
                         <div style={{fontWeight: '600', color: '#495057', marginBottom: '15px', fontSize: '15px'}}>🖼️ Imagen del Producto</div>
                         <img 
