@@ -485,65 +485,68 @@ export default function Products() {
                 {/* Panel expandido con información adicional */}
                 {isExpanded && (
                   <div style={{
-                    marginTop: '15px',
-                    paddingTop: '15px',
-                    borderTop: '1px solid #e9ecef',
+                    marginTop: '20px',
+                    paddingTop: '20px',
+                    borderTop: '2px solid #e9ecef',
                     backgroundColor: '#f8f9fa',
-                    margin: '15px -15px -15px -15px',
-                    padding: '20px',
+                    margin: '20px -15px -15px -15px',
+                    padding: '25px',
                     borderRadius: '0 0 8px 8px'
                   }}>
-                    <h4 style={{margin: '0 0 15px 0', color: '#495057', fontSize: '16px'}}>
+                    <h4 style={{margin: '0 0 20px 0', color: '#495057', fontSize: '18px', textAlign: 'center'}}>
                       📋 Información Detallada
                     </h4>
                     
                     <div style={{
                       display: 'grid',
-                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-                      gap: '15px',
-                      marginBottom: '15px'
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                      gap: '20px',
+                      marginBottom: '20px'
                     }}>
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        border: '1px solid #e9ecef'
+                        padding: '15px',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>🏷️ Identificación</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
-                          <div><strong>SKU:</strong> {p.sku || 'No asignado'}</div>
-                          <div><strong>N° Serie:</strong> {p.serial_number || 'No asignado'}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>🏷️ Identificación</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
+                          <div style={{marginBottom: '6px'}}><strong>SKU:</strong> {p.sku || 'No asignado'}</div>
+                          <div style={{marginBottom: '6px'}}><strong>N° Serie:</strong> {p.serial_number || 'No asignado'}</div>
                           <div><strong>Descripción:</strong> {p.description || 'Sin descripción'}</div>
                         </div>
                       </div>
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        border: '1px solid #e9ecef'
+                        padding: '15px',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>📊 Control de Stock</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
-                          <div><strong>Stock Actual:</strong> <span style={{color: stockColor, fontWeight: 'bold'}}>{p.quantity}</span></div>
-                          <div><strong>Stock Mínimo:</strong> {p.min_stock || 0}</div>
-                          <div><strong>Stock Máximo:</strong> {p.max_stock || 'Sin límite'}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>📊 Control de Stock</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
+                          <div style={{marginBottom: '6px'}}><strong>Stock Actual:</strong> <span style={{color: stockColor, fontWeight: 'bold'}}>{p.quantity}</span></div>
+                          <div style={{marginBottom: '6px'}}><strong>Stock Mínimo:</strong> {p.min_stock || 0}</div>
+                          <div style={{marginBottom: '6px'}}><strong>Stock Máximo:</strong> {p.max_stock || 'Sin límite'}</div>
                           <div><strong>Unidad:</strong> {p.unit_of_measure || 'unidades'}</div>
                         </div>
                       </div>
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        border: '1px solid #e9ecef'
+                        padding: '15px',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>⚙️ Estado y Control</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
-                          <div><strong>Estado:</strong> 
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>⚙️ Estado y Control</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
+                          <div style={{marginBottom: '6px'}}><strong>Estado:</strong> 
                             <span style={{
                               marginLeft: '8px',
-                              padding: '2px 8px',
+                              padding: '3px 10px',
                               borderRadius: '12px',
                               fontSize: '12px',
                               backgroundColor: p.is_active ? '#d4edda' : '#f8d7da',
@@ -552,7 +555,7 @@ export default function Products() {
                               {p.is_active ? '✅ Activo' : '❌ Inactivo'}
                             </span>
                           </div>
-                          <div><strong>Control de Vencimiento:</strong> 
+                          <div style={{marginBottom: '6px'}}><strong>Control de Vencimiento:</strong> 
                             <span style={{
                               marginLeft: '8px',
                               color: p.requires_expiry_control ? '#dc3545' : '#6c757d'
@@ -566,13 +569,14 @@ export default function Products() {
                       
                       <div className="detail-card" style={{
                         backgroundColor: 'white',
-                        padding: '12px',
-                        borderRadius: '6px',
-                        border: '1px solid #e9ecef'
+                        padding: '15px',
+                        borderRadius: '8px',
+                        border: '1px solid #e9ecef',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>📅 Fechas</div>
-                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.4'}}>
-                          <div><strong>Creado:</strong> {formatDate(p.created_at)}</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '12px', fontSize: '15px'}}>📅 Fechas</div>
+                        <div style={{fontSize: '14px', color: '#6c757d', lineHeight: '1.5'}}>
+                          <div style={{marginBottom: '6px'}}><strong>Creado:</strong> {formatDate(p.created_at)}</div>
                           <div><strong>Actualizado:</strong> {formatDate(p.updated_at)}</div>
                         </div>
                       </div>
@@ -582,27 +586,29 @@ export default function Products() {
                     {p.image_url && p.image_url.trim() !== '' && (
                       <div style={{
                         backgroundColor: 'white',
-                        padding: '12px',
-                        borderRadius: '6px',
+                        padding: '20px',
+                        borderRadius: '8px',
                         border: '1px solid #e9ecef',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                       }}>
-                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '8px'}}>🖼️ Imagen del Producto</div>
+                        <div style={{fontWeight: '600', color: '#495057', marginBottom: '15px', fontSize: '15px'}}>🖼️ Imagen del Producto</div>
                         <img 
                           src={p.image_url} 
                           alt={p.name}
                           style={{
-                            maxWidth: '200px',
-                            maxHeight: '200px',
+                            maxWidth: '300px',
+                            maxHeight: '300px',
                             borderRadius: '8px',
-                            border: '1px solid #e9ecef'
+                            border: '1px solid #e9ecef',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                           }}
                           onError={(e) => {
                             e.target.style.display = 'none';
                             e.target.nextSibling.style.display = 'block';
                           }}
                         />
-                        <div style={{display: 'none', color: '#6c757d', fontStyle: 'italic'}}>
+                        <div style={{display: 'none', color: '#6c757d', fontStyle: 'italic', marginTop: '10px'}}>
                           Error cargando imagen
                         </div>
                       </div>
