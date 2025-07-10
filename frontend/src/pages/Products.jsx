@@ -82,10 +82,10 @@ export default function Products() {
       
       // Datos de ejemplo como fallback
       const mockProducts = [
-        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', brand: 'ACME', quantity: 150, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=🔩' },
-        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', brand: 'Stanley', quantity: 200, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=🔧' },
-        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', brand: 'Bosch', quantity: 75, category_name: 'Sujetadores', image_url: null },
-        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', brand: 'Makita', quantity: 90, category_name: 'Sujetadores', image_url: 'https://via.placeholder.com/80x80?text=⚙️' },
+        { id: 1, name: 'Tuerca M8', serial_number: 'TM8-001', location: 'Estante A1', brand: 'ACME', quantity: 150, image_url: 'https://via.placeholder.com/80x80?text=🔩' },
+        { id: 2, name: 'Tornillo M6x20', serial_number: 'TM6-020', location: 'Estante A2', brand: 'Stanley', quantity: 200, image_url: 'https://via.placeholder.com/80x80?text=🔧' },
+        { id: 3, name: 'Arandela 8mm', serial_number: 'AR8-001', location: 'Estante B1', brand: 'Bosch', quantity: 75, image_url: null },
+        { id: 4, name: 'Perno M10x30', serial_number: 'PM10-030', location: 'Estante B2', brand: 'Makita', quantity: 90, image_url: 'https://via.placeholder.com/80x80?text=⚙️' },
       ];
       setProducts(mockProducts);
     } finally {
@@ -490,7 +490,7 @@ export default function Products() {
                     }}>
                       <div><strong>Serie:</strong> {p.serial_number || 'N/A'}</div>
                       <div><strong>Marca:</strong> {p.brand || 'N/A'}</div>
-                      <div><strong>Categoría:</strong> {p.category_name || 'Sin categoría'}</div>
+                      <div><strong>Categoría:</strong> {p.category_id ? (categories.find(cat => cat.id === p.category_id)?.name || 'ID ' + p.category_id) : 'Sin categoría'}</div>
                       <div><strong>Ubicación:</strong> {p.location || 'N/A'}</div>
                     </div>
                   </div>

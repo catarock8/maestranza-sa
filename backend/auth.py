@@ -5,10 +5,11 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from typing import Optional
 
-from database import User  # Peewee model
+from database import supabase  # Cliente de Supabase
 
-load_dotenv()
+
 
 # Config
 SECRET_KEY = os.getenv('JWT_SECRET')
@@ -25,14 +26,20 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 def get_user(username: str):
+    """Obtiene un usuario de Supabase por username"""
     try:
-        return User.get(User.username == username)
-    except User.DoesNotExist:
+        response = supabase.table('users').select('*').eq('username', username).execute()
+        if response.data:
+            return response.data[0]
+        return None
+    except Exception as e:
+        print(f"Error getting user: {e}")
         return None
 
 def authenticate_user(username: str, password: str):
+    """Autentica un usuario verificando username y password"""
     user = get_user(username)
-    if not user or not verify_password(password, user.password_hash):
+    if not user or not verify_password(password, user['password_hash']):
         return None
     return user
 
@@ -60,10 +67,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise credentials_exception
     return user
 
-async def get_current_active_user(current_user: User = Depends(get_current_user)):
+async def get_current_active_user(current_user: dict = Depends(get_current_user)):
+    """Obtiene el usuario actual activo"""
     return current_user
 
-async def get_current_active_admin(current_user: User = Depends(get_current_user)):
-    if current_user.role != "Admin":
+async def get_current_active_admin(current_user: dict = Depends(get_current_user)):
+    """Verifica que el usuario actual sea administrador"""
+    if current_user.get('role') != "Admin":
         raise HTTPException(status_code=403, detail="Operation not permitted")
     return current_user
