@@ -1,82 +1,75 @@
-
-
-
-
-
-
-# ==== CONEXIÓN SIMPLE A SUPABASE (SIN MANEJO DE SSL MANUAL) ====
 import os
+from datetime import datetime, date
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
 # Cargar variables de entorno
 load_dotenv()
 
+# IMPORTANTE: Usar SUPABASE_KEY (anon key) para el cliente
 SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_KEY = os.getenv('SUPABASE_KEY')  # Usa la clave pública
+SUPABASE_KEY = os.getenv('SUPABASE_KEY')  # Esta es la anon key, NO la service role
 
 print(f"🔑 SUPABASE_URL: {SUPABASE_URL}")
-print(f"� SUPABASE_KEY (first 8): {SUPABASE_KEY[:8] if SUPABASE_KEY else None}")
+print(f"🔑 SUPABASE_KEY (first 20): {SUPABASE_KEY[:20] if SUPABASE_KEY else 'NOT SET'}...")
 
+# Crear cliente de Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-from dotenv import load_dotenv
-from supabase import create_client, Client
-
-# Cargar variables de entorno
-load_dotenv()
-
-# Configuración para Supabase Client (solo lo necesario)
-from datetime import datetime, date
-
-SUPABASE_URL = os.getenv('SUPABASE_URL')
-SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY')
-
-print(f"🔑 SUPABASE_URL: {SUPABASE_URL}")
-print(f"🔑 SUPABASE_SERVICE_ROLE_KEY (first 8): {SUPABASE_SERVICE_ROLE_KEY[:8] if SUPABASE_SERVICE_ROLE_KEY else None}")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
-# Diagnóstico: consulta directa a products al cargar el módulo
+# Verificar conexión al cargar el módulo
 try:
-    diag_response = supabase.table('products').select('*').limit(1).execute()
-    print(f"🧪 Diagnóstico: productos encontrados: {len(diag_response.data)} (debería ser >0 si hay datos y permisos)")
-    if diag_response.data:
-        print(f"🧪 Primer producto: {diag_response.data[0]}")
+    test_response = supabase.table('products').select('count', count='exact').execute()
+    print(f"✅ Conexión a Supabase exitosa - Total productos: {test_response.count}")
 except Exception as e:
-    print(f"❌ Diagnóstico: error consultando products: {e}")
-
-
-def create_sample_data():
-    """Crea datos de ejemplo"""
-    try:
-        print("📦 Creando datos de ejemplo...")
-        return True
-    except Exception as e:
-        print(f"❌ Error creando datos de ejemplo: {e}")
-        return False
+    print(f"❌ Error conectando a Supabase: {e}")
 
 # =============================================================================
 # FUNCIONES DE PRODUCTOS
 # =============================================================================
 
 def get_products(order_by='name', order_dir='asc', limit=None):
-    """
-    Obtiene la lista de productos con información relacionada
-    """
+    """Obtiene la lista de productos con información relacionada"""
     try:
-        print(f"🔍 Obteniendo productos (order_by={order_by}, order_dir={order_dir}, limit={limit})")
-        # Usar la vista v_products_full para obtener también el nombre de la categoría y proveedor
-        query = supabase.table('v_products_full').select('*')
+        print(f"🔍 Obteniendo productos...")
+        
+        # Usar la tabla products directamente con joins
+        query = supabase.table('products').select(
+            '*',
+            'categories(name)',
+            'suppliers(name)'
+        )
+        
+        # Aplicar orden
         if order_dir.lower() == 'desc':
             query = query.order(order_by, desc=True)
         else:
-            query = query.order(order_by, desc=False)
+            query = query.order(order_by)
+            
+        # Aplicar límite si existe
         if limit:
             query = query.limit(limit)
+            
         response = query.execute()
-        print(f"✅ Productos obtenidos: {len(response.data)}")
-        return response.data
+        
+        # Transformar la respuesta para incluir los nombres de categoría y proveedor
+        products = []
+        for product in response.data:
+            # Copiar todos los campos del producto
+            p = dict(product)
+            
+            # Agregar nombres de categoría y proveedor
+            p['category_name'] = product.get('categories', {}).get('name') if product.get('categories') else None
+            p['supplier_name'] = product.get('suppliers', {}).get('name') if product.get('suppliers') else None
+            
+            # Remover los objetos anidados
+            p.pop('categories', None)
+            p.pop('suppliers', None)
+            
+            products.append(p)
+        
+        print(f"✅ Productos obtenidos: {len(products)}")
+        return products
+        
     except Exception as e:
         print(f"❌ Error obteniendo productos: {e}")
         return []
@@ -84,9 +77,7 @@ def get_products(order_by='name', order_dir='asc', limit=None):
 def get_categories():
     """Obtiene todas las categorías"""
     try:
-        print("🔍 Obteniendo categorías...")
         response = supabase.table('categories').select('*').order('name').execute()
-        print(f"✅ Categorías obtenidas: {len(response.data)}")
         return response.data
     except Exception as e:
         print(f"❌ Error obteniendo categorías: {e}")
@@ -95,9 +86,7 @@ def get_categories():
 def get_suppliers():
     """Obtiene todos los proveedores"""
     try:
-        print("🔍 Obteniendo proveedores...")
         response = supabase.table('suppliers').select('*').order('name').execute()
-        print(f"✅ Proveedores obtenidos: {len(response.data)}")
         return response.data
     except Exception as e:
         print(f"❌ Error obteniendo proveedores: {e}")
@@ -106,17 +95,15 @@ def get_suppliers():
 def get_brands():
     """Obtiene todas las marcas únicas de productos"""
     try:
-        print("🔍 Obteniendo marcas...")
         response = supabase.table('products').select('brand').execute()
         
-        # Extraer marcas únicas
+        # Extraer marcas únicas y filtrar None/null
         brands = list(set([item['brand'] for item in response.data if item.get('brand')]))
         brands.sort()
         
         # Convertir a formato esperado por el frontend
         brand_objects = [{'id': i+1, 'name': brand} for i, brand in enumerate(brands)]
         
-        print(f"✅ Marcas obtenidas: {len(brand_objects)}")
         return brand_objects
     except Exception as e:
         print(f"❌ Error obteniendo marcas: {e}")
@@ -125,9 +112,7 @@ def get_brands():
 def get_projects():
     """Obtiene todos los proyectos"""
     try:
-        print("🔍 Obteniendo proyectos...")
         response = supabase.table('projects').select('*').order('name').execute()
-        print(f"✅ Proyectos obtenidos: {len(response.data)}")
         return response.data
     except Exception as e:
         print(f"❌ Error obteniendo proyectos: {e}")
@@ -136,145 +121,40 @@ def get_projects():
 def get_movements(limit=100):
     """Obtiene los movimientos de inventario más recientes"""
     try:
-        print(f"🔍 Obteniendo movimientos (limit={limit})...")
-        response = supabase.table('movements').select('''
-            *,
-            products!inner(name, serial_number),
-            users!inner(username),
-            projects(name)
-        ''').order('timestamp', desc=True).limit(limit).execute()
+        response = supabase.table('movements').select(
+            '*',
+            'products(name, serial_number)',
+            'users(username)',
+            'projects(name)'
+        ).order('timestamp', desc=True).limit(limit).execute()
         
-        print(f"✅ Movimientos obtenidos: {len(response.data)}")
         return response.data
     except Exception as e:
         print(f"❌ Error obteniendo movimientos: {e}")
         return []
 
-# =============================================================================
-# FUNCIONES DE USUARIOS Y AUTENTICACIÓN
-# =============================================================================
-
-def create_user(username: str, email: str, password: str, role: str = 'user'):
-    """Crea un nuevo usuario"""
-    try:
-        from werkzeug.security import generate_password_hash
-        
-        if not supabase:
-            print("❌ Error: Cliente de Supabase no disponible")
-            return None
-            
-        user_data = {
-            'username': username,
-            'email': email,
-            'password': generate_password_hash(password),
-            'role': role,
-            'is_active': True,
-            'created_at': datetime.now().isoformat()
-        }
-        
-        response = supabase.table('users').insert(user_data).execute()
-        print(f"✅ Usuario {username} creado exitosamente")
-        return response.data[0] if response.data else None
-        
-    except Exception as e:
-        print(f"❌ Error creando usuario: {e}")
-        return None
-
-def get_user_by_username(username: str):
-    """Obtiene un usuario por nombre de usuario"""
-    try:
-        if not supabase:
-            return None
-        response = supabase.table('users').select('*').eq('username', username).execute()
-        return response.data[0] if response.data else None
-    except Exception as e:
-        print(f"❌ Error obteniendo usuario: {e}")
-        return None
-
-def get_user_by_email(email: str):
-    """Obtiene un usuario por email"""
-    try:
-        if not supabase:
-            return None
-        response = supabase.table('users').select('*').eq('email', email).execute()
-        return response.data[0] if response.data else None
-    except Exception as e:
-        print(f"❌ Error obteniendo usuario por email: {e}")
-        return None
-
-def create_admin_user():
-    """Crea el usuario administrador por defecto"""
-    try:
-        if not supabase:
-            print("❌ Error: Cliente de Supabase no disponible")
-            return False
-        
-        # Verificar si ya existe el admin
-        existing_admin = supabase.table('users').select('*').eq('username', 'admin').execute()
-        
-        if existing_admin.data:
-            print("ℹ️  Usuario admin ya existe")
-            return True
-        
-        # Crear usuario admin
-        from werkzeug.security import generate_password_hash
-        
-        admin_data = {
-            'username': 'admin',
-            'email': 'admin@maestranza.com',
-            'password': generate_password_hash('admin123'),
-            'role': 'admin',
-            'is_active': True,
-            'created_at': datetime.now().isoformat()
-        }
-        
-        response = supabase.table('users').insert(admin_data).execute()
-        print("✅ Usuario admin creado: admin/admin123")
-        return True
-        
-    except Exception as e:
-        print(f"❌ Error creando usuario admin: {e}")
-        return False
-
-# =============================================================================
-# HELPER FUNCTIONS
-# =============================================================================
-
-def serialize_datetime(obj):
-    """Convierte objetos datetime a string para JSON"""
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    return obj
-
 def get_dashboard_stats():
     """Obtiene estadísticas para el dashboard"""
     try:
-        print("📊 Obteniendo estadísticas del dashboard...")
-        
         # Contar productos
-        products_response = supabase.table('products').select('id').execute()
-        total_products = len(products_response.data)
+        products_count = supabase.table('products').select('*', count='exact').execute()
         
         # Contar categorías
-        categories_response = supabase.table('categories').select('id').execute()
-        total_categories = len(categories_response.data)
+        categories_count = supabase.table('categories').select('*', count='exact').execute()
         
         # Contar proveedores
-        suppliers_response = supabase.table('suppliers').select('id').execute()
-        total_suppliers = len(suppliers_response.data)
+        suppliers_count = supabase.table('suppliers').select('*', count='exact').execute()
         
         # Contar proyectos activos
-        projects_response = supabase.table('projects').select('id').eq('status', 'active').execute()
-        active_projects = len(projects_response.data)
+        projects_count = supabase.table('projects').select('*', count='exact').eq('status', 'active').execute()
         
         stats = {
-            'total_products': total_products,
-            'total_categories': total_categories,
-            'total_suppliers': total_suppliers,
-            'active_projects': active_projects
+            'total_products': products_count.count,
+            'total_categories': categories_count.count,
+            'total_suppliers': suppliers_count.count,
+            'active_projects': projects_count.count
         }
         
-        print(f"✅ Estadísticas obtenidas: {stats}")
         return stats
         
     except Exception as e:
@@ -286,4 +166,22 @@ def get_dashboard_stats():
             'active_projects': 0
         }
 
-# Inicializar base de datos al importar
+def create_sample_data():
+    """Crea datos de ejemplo si no existen"""
+    try:
+        # Verificar si ya hay datos
+        existing = supabase.table('products').select('*', count='exact').execute()
+        if existing.count > 0:
+            print(f"ℹ️ Ya existen {existing.count} productos. No se crearán datos de ejemplo.")
+            return True
+            
+        print("📦 Base de datos vacía. Creando datos de ejemplo...")
+        
+        # Los datos ya deberían estar creados por el SQL script
+        # Esta función es solo para verificación
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error creando datos de ejemplo: {e}")
+        return False
