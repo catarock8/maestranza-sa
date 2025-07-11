@@ -6,6 +6,7 @@ import Movements from './pages/Movements';
 import Batches from './pages/Batches';
 import Reports from './pages/Reports';
 import Test from './pages/Test';
+import AddProduct from './pages/AddProduct';
 import './index.css';
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
       <Route path="/movements" element={<Movements />} />
       <Route path="/batches" element={<Batches />} />
       <Route path="/reports" element={<Reports />} />
+      <Route path="/add-product" element={<AddProduct />} />
       <Route path="/test" element={<Test />} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

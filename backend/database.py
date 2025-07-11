@@ -50,25 +50,71 @@ except:
 # FUNCIONES DE PRODUCTOS
 # =============================================================================
 
-def get_products(order_by='name', order_dir='asc', limit=None):
-    """Obtiene la lista de productos con información relacionada"""
+def get_products(
+    category_id=None,
+    brand=None,
+    search=None,
+    min_stock=None,
+    max_stock=None,
+    order_by='name',
+    order_dir='asc',
+    limit=None
+):
+    """Obtiene la lista de productos con información relacionada y filtros"""
     try:
-        # Query simple
-        query = supabase.table('products').select('*')
-        
-        # Aplicar orden
-        if order_dir.lower() == 'desc':
+        # Hacemos join para traer el nombre de la categoría
+        query = supabase.table('products').select('*,categories(name)')
+
+        # Filtros
+        if category_id:
+            query = query.eq('category_id', category_id)
+        if brand:
+            query = query.ilike('brand', f'%{brand}%')
+        if search:
+            query = query.or_(
+                f"name.ilike.%{search}%,serial_number.ilike.%{search}%"
+            )
+        if min_stock is not None:
+            query = query.gte('quantity', min_stock)
+        if max_stock is not None:
+            query = query.lte('quantity', max_stock)
+
+        # Orden
+        if order_dir and order_dir.lower() == 'desc':
             query = query.order(order_by, desc=True)
         else:
             query = query.order(order_by)
-            
-        # Aplicar límite si existe
+
+        # Límite
         if limit:
             query = query.limit(limit)
-            
+
         response = query.execute()
-        return response.data
-        
+        productos = response.data
+
+        # Obtener IDs de productos que requieren control de vencimiento
+        productos_con_control = [p['id'] for p in productos if p.get('requires_expiry_control')]
+        expiries_map = {}
+        if productos_con_control:
+            # Traer expiries para todos los productos con control
+            expiries_resp = supabase.table('expiries').select('product_id,expiry_date').in_('product_id', productos_con_control).execute()
+            for row in expiries_resp.data:
+                expiries_map[row['product_id']] = row['expiry_date']
+
+        for p in productos:
+            # Nombre de categoría
+            if p.get('categories') and isinstance(p['categories'], dict):
+                p['category_name'] = p['categories'].get('name', 'Sin categoría')
+            else:
+                p['category_name'] = 'Sin categoría'
+            p.pop('categories', None)
+            # Fecha de vencimiento si corresponde
+            if p.get('requires_expiry_control'):
+                p['expiry_date'] = expiries_map.get(p['id'])
+            else:
+                p['expiry_date'] = None
+        return productos
+
     except Exception as e:
         print(f"Error obteniendo productos: {e}")
         return []

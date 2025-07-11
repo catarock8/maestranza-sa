@@ -38,11 +38,30 @@ def root():
         }
     }
 
+
+from fastapi import Query
+
 @app.get('/products')
-def list_products():
-    """Lista todos los productos"""
+def list_products(
+    category_id: str = Query(None),
+    brand: str = Query(None),
+    search: str = Query(None),
+    min_stock: int = Query(None),
+    max_stock: int = Query(None),
+    order_by: str = Query('name'),
+    order_dir: str = Query('asc')
+):
+    """Lista productos con filtros opcionales"""
     try:
-        products = get_products()
+        products = get_products(
+            category_id=category_id,
+            brand=brand,
+            search=search,
+            min_stock=min_stock,
+            max_stock=max_stock,
+            order_by=order_by,
+            order_dir=order_dir
+        )
         return products
     except Exception as e:
         print(f"[ERROR] /products: {e}")
